@@ -15,7 +15,9 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
+
+    
+    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 
     
     app.register_blueprint(pizza_bp)
@@ -40,7 +42,6 @@ def create_app():
         restaurant = Restaurant.query.get(id)
         if not restaurant:
             return jsonify({"error": "Restaurant not found"}), 404
-
         return jsonify(restaurant.to_dict()), 200
 
     @app.route('/restaurants/<int:id>', methods=['DELETE'])
@@ -48,7 +49,6 @@ def create_app():
         restaurant = Restaurant.query.get(id)
         if not restaurant:
             return jsonify({"error": "Restaurant not found"}), 404
-
         db.session.delete(restaurant)
         db.session.commit()
         return '', 204

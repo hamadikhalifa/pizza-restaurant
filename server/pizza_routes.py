@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, Pizza  
+from models import db, Pizza, RestaurantPizza 
 
 pizza_bp = Blueprint('pizzas', __name__)
 
@@ -15,9 +15,7 @@ def handle_pizzas():
                 "error": "Invalid data. 'name' must be a string and 'ingredients' must be a list."
             }), 400
 
-
         ingredients_str = ", ".join(ingredients)
-
         pizza = Pizza(name=name, ingredients=ingredients_str)
         db.session.add(pizza)
         db.session.commit()
@@ -26,3 +24,18 @@ def handle_pizzas():
 
     pizzas = Pizza.query.all()
     return jsonify([p.to_dict() for p in pizzas]), 200
+
+
+@pizza_bp.route('/pizzas/<int:id>', methods=['DELETE'])
+def delete_pizza(id):
+    pizza = Pizza.query.get(id)
+    if not pizza:
+        return jsonify({"error": "Pizza not found"}), 404
+
+    
+    RestaurantPizza.query.filter_by(pizza_id=id).delete()
+
+    db.session.delete(pizza)
+    db.session.commit()
+
+    return jsonify({"message": "Pizza deleted"}), 200
